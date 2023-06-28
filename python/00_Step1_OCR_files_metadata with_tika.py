@@ -203,7 +203,7 @@ dirlist.sort()
 if g.DEBUG_OL >= 1:
     #Display list of files formated in columns
     print(len(dirlist),' files in directory')
-    list_columns(dirlist,cols=5)
+    list_columns(dirlist,cols=4)
 
 ##################
 listDone = []                                                      # variable to retrieve all files already trated in metadata
@@ -235,8 +235,8 @@ if os.path.isfile(file_lvl1):
         if g.DEBUG_OL >= 1:
             #Display list of remaining files formated in columns
             print('----------------------------------------------------------')
-            print(len(dirlist),'fichiers restant à traiter:')
-            list_columns(dirlist,cols=5)
+            print(len(dirlist),'remaining files to assess:')
+            list_columns(dirlist,cols=4)
             newFiles = True
     else:
         newFiles =False
@@ -259,11 +259,11 @@ if os.path.isfile(file_lvl1):
     if newFiles == True:
         layout = [[sg.T('Do you want to remove the existing result file:',font=('Arial', 10)),
                    sg.T(file_lvl1,font=('Arial', 10, 'bold'))],
-                   [sg.T('or do you prefer to add remaining od added files to the existing metadata ?',font=('Arial', 10))],
+                   [sg.T('or do you prefer to add remaining/added files to the existing metadata ?',font=('Arial', 10))],
                    [sg.B('Remove',button_color=('white', 'red')), sg.B('Add',button_color=('black', 'green')), sg.T(' ',size=(40, 1)),sg.Cancel()]]
         
     elif newFiles == False:
-        layout = [[sg.T('There is no new files to asses. Do you want to recreate the existing result file:',font=('Arial', 10)),
+        layout = [[sg.T('There are no new files to asses. Do you want to recreate the existing result file:',font=('Arial', 10)),
                    sg.T(file_lvl1,font=('Arial', 10, 'bold'))],
                   [sg.B('Restart and Clean metadata file',button_color=('white', 'red')), sg.T(' ',size=(40, 1)),sg.Cancel()]]
         
@@ -274,7 +274,7 @@ if os.path.isfile(file_lvl1):
             action = 0
             exit()
             break
-        elif events == 'Remove':
+        elif events == 'Remove' or events == 'Restart and Clean metadata file':
             if g.DEBUG_OL >= 2:
                 print(events,values)
             action = 1
@@ -378,7 +378,7 @@ def traiteocr(dirlist):
             dico['timestamp'] = collectedtime
             writer.writerow(dico)
         if g.DEBUG_OL >= 1:
-            print(dirlist,' traité...')
+            print(dirlist,' Done...')
 
 
 # In[ ]:
@@ -386,8 +386,8 @@ def traiteocr(dirlist):
 
 if __name__ == "__main__":
     start_func_time = time.time()
-    print("Lancement...\n Soyez patient...")
-    print('Traitement de ',len(dirlist),' fichiers')
+    print("Launching...\n Be patient...")
+    print('Collection of metadata in ',len(dirlist),' files')
     with Pool (g.parallel) as p:
         p.map(traiteocr,dirlist)
     curr_time = time.time() - start_func_time

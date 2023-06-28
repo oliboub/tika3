@@ -29,10 +29,10 @@ def init():
     THEME = 'LightBlue2'
     
     global category
-    #category="doc-engineering"
+    category="doc-engineering"
     #category="doc-consoles"
     #category="doc-electro"
-    category="doc-photo"
+    #category="doc-photo"
     #category="doc-airbus"
     #category="doc-tests"
     #category="doc-tiff"
