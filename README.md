@@ -32,7 +32,7 @@ Change has been done following a training in Udemy: "Python Coder un dashboard d
 1 file is already developped,
 | FIle | Description |
 | --- | --- |
-| jupyter_files/**00_Step1_OCR_files_metadata with_tika.ipynb** | tika parsing of files from a category directory, with output is a file with all metadata found with wtt by file  |
+| jupyter_files/**00_Step1_OCR_files_metadata with_tika.ipynb** | tika parsing of files from a category directory, with output is a file with all metadata found, including  qtt by file  |
 
 
 ## <span style="color:blue">result </span>

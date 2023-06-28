@@ -58,36 +58,50 @@ g.init()
 category=g.category
 
 
+# ------
+# # Functions
+
+# ## print content of a list in multiple columns 
+# Source: copy from https://stackoverflow.com/questions/1524126/how-to-print-a-list-more-nicely<br>
+
 # In[ ]:
 
 
-now = datetime.datetime.now()
- 
-if g.DEBUG_OL >= 2:
-    print("now =", now)
+import math
 
-# dd/mm/YY H:M:S
-dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
-#print("date and time =", dt_string)
+def list_columns(obj, cols=4, columnwise=True, gap=4):
+    """
+    Print the given list in evenly-spaced columns.
 
-#category="doc-engineering"
-#category="doc-consoles"
-#category="doc-electro"
-#category="doc-photo"
-#category="doc-airbus"
-#category="doc-tests"
-dirlist = os.listdir('../'+category)
+    Parameters
+    ----------
+    obj : list
+        The list to be printed.
+    cols : int
+        The number of columns in which the list should be printed.
+    columnwise : bool, default=True
+        If True, the items in the list will be printed column-wise.
+        If False the items in the list will be printed row-wise.
+    gap : int
+        The number of spaces that should separate the longest column
+        item/s from the next column. This is the effective spacing
+        between columns based on the maximum len() of the list items.
+    """
 
-#print(dirlist)
-#for i in range(len(dirlist)):
-#    dirlist[i]=''.join(dirlist[i].split())
-    
-if g.DEBUG_OL >= 1:
-    print(len(dirlist),' files in directory\n', dirlist)
+    sobj = [str(item) for item in obj]
+    if cols > len(sobj): cols = len(sobj)
+    max_len = max([len(item) for item in sobj])
+    if columnwise: cols = int(math.ceil(float(len(sobj)) / float(cols)))
+    plist = [sobj[i: i+cols] for i in range(0, len(sobj), cols)]
+    if columnwise:
+        if not len(plist[-1]) == cols:
+            plist[-1].extend(['']*(len(sobj) - len(plist[-1])))
+        plist = zip(*plist)
+    printer = '\n'.join([
+        ''.join([c.ljust(max_len + gap) for c in p])
+        for p in plist])
+    print(printer)
 
-
-# ------
-# # Functions
 
 # ## Make difference between list of files (dirlist) and files already treated in the result
 
@@ -159,6 +173,130 @@ def convert_to_preferred_format(sec):
 
 
 # ------
+# # Main program
+# ## Initialization
+
+# In[ ]:
+
+
+now = datetime.datetime.now()
+ 
+if g.DEBUG_OL >= 2:
+    print("now =", now)
+
+# dd/mm/YY H:M:S
+dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
+#print("date and time =", dt_string)
+
+#category="doc-engineering"
+#category="doc-consoles"
+#category="doc-electro"
+#category="doc-photo"
+#category="doc-airbus"
+#category="doc-tests"
+dirlist = os.listdir('../'+category)
+dirlist.sort()
+#print(dirlist)
+#for i in range(len(dirlist)):
+#    dirlist[i]=''.join(dirlist[i].split())
+    
+if g.DEBUG_OL >= 1:
+    #Display list of files formated in columns
+    print(len(dirlist),' files in directory')
+    list_columns(dirlist,cols=5)
+
+##################
+listDone = []                                                      # variable to retrieve all files already trated in metadata
+output_directory=category+'_results'                               # directory of metadata file creation
+file_lvl1=output_directory+'/'+category+'__metadata.csv'           # file name of metadata file
+colonnes = ['category','file','metadata','count','timestamp']      # columns to be created in metadata file
+
+dico = {}                                                          # temporary dictionary to create and write each line of metadata file
+dico = {i : '' for i in colonnes}                                  # dictionnary initialization
+##################
+
+## collect list of files already done from dirlist
+if not os.path.isdir(output_directory):
+    if g.DEBUG_OL >= 2:
+        print("directory does not exists. Creation launched")
+    os.mkdir(output_directory)
+
+if os.path.isfile(file_lvl1):
+    reader = csv.reader(open(file_lvl1, encoding='UTF-8'))
+    for row in reader:
+        if row[1] not in listDone and  row[1] != 'file':
+            listDone.append(row[1])
+        if g.DEBUG_OL >= 2:
+            print(listDone)
+    if len(listDone) != len(dirlist):
+        
+        dirlist=diff(dirlist,listDone)
+
+        if g.DEBUG_OL >= 1:
+            #Display list of remaining files formated in columns
+            print('----------------------------------------------------------')
+            print(len(dirlist),'fichiers restant à traiter:')
+            list_columns(dirlist,cols=5)
+            newFiles = True
+    else:
+        newFiles =False
+
+if g.DEBUG_OL >= 2:
+    print('newFiles:',newFiles)
+
+
+# ## Request update or remove existing metadata file
+
+# In[ ]:
+
+
+if g.DEBUG_OL >= 2:
+    print(file_lvl1)        
+if os.path.isfile(file_lvl1):
+    import PySimpleGUI as sg
+    title='Selected category:'+category
+    
+    if newFiles == True:
+        layout = [[sg.T('Do you want to remove the existing result file:',font=('Arial', 10)),
+                   sg.T(file_lvl1,font=('Arial', 10, 'bold'))],
+                   [sg.T('or do you prefer to add remaining od added files to the existing metadata ?',font=('Arial', 10))],
+                   [sg.B('Remove',button_color=('white', 'red')), sg.B('Add',button_color=('black', 'green')), sg.T(' ',size=(40, 1)),sg.Cancel()]]
+        
+    elif newFiles == False:
+        layout = [[sg.T('There is no new files to asses. Do you want to recreate the existing result file:',font=('Arial', 10)),
+                   sg.T(file_lvl1,font=('Arial', 10, 'bold'))],
+                  [sg.B('Restart and Clean metadata file',button_color=('white', 'red')), sg.T(' ',size=(40, 1)),sg.Cancel()]]
+        
+    window=sg.Window(title, layout)
+    while True:
+        events, values = window.read()
+        if events == 'Cancel' or events == sg.WIN_CLOSED:
+            action = 0
+            exit()
+            break
+        elif events == 'Remove':
+            if g.DEBUG_OL >= 2:
+                print(events,values)
+            action = 1
+            os.remove(file_lvl1)
+            tableau = DataFrame(columns=colonnes)
+            tableau.to_csv(file_lvl1,index=False)
+
+            break
+        elif events == 'Add':
+            if g.DEBUG_OL >= 2:
+                print(events,values)
+            action = 2
+            break
+            
+    if g.DEBUG_OL >= 2:
+        print(action)
+    window.close()
+
+## Action sur le fichiers existants
+
+
+# ------
 # # prepare list of unecessary words from file
 
 # In[ ]:
@@ -173,85 +311,6 @@ with open(STOP_WORDS_FILE, 'r', encoding='UTF-8') as file:
 
 if g.DEBUG_OL >= 3:
     print(stop_words)
-
-
-# # Request action on result file (remove existing or append)
-
-# In[ ]:
-
-
-output_directory=category+'_results'
-if not os.path.isdir(output_directory):
-    if g.DEBUG_OL >= 2:
-        print("directory does not exists. Creation launched")
-    os.mkdir(output_directory)
-    
-file_lvl1=output_directory+'/'+category+'__metadata.csv'
-action = 1
-if g.DEBUG_OL >= 2:
-    print(file_lvl1)        
-if os.path.isfile(file_lvl1):
-    import PySimpleGUI as sg
-    title='Selected category:'+category
-    layout = [[sg.T('Do you want to remove the existing result file:',font=('Arial', 10)),
-               sg.T(file_lvl1,font=('Arial', 10, 'bold'))],
-               [sg.T('or do you prefer to add remaining od added files to the existing metadata ?',font=('Arial', 10))],
-               [sg.B('Remove',button_color=('white', 'red')), sg.B('Add',button_color=('black', 'green')), sg.T(' ',size=(40, 1)),sg.Cancel()]]
-    window=sg.Window(title, layout)
-    while True:
-        events, values = window.read()
-        if events == 'Cancel' or events == sg.WIN_CLOSED:
-            action = 0
-            exit()
-            break
-        elif events == 'Remove':
-            if g.DEBUG_OL >= 2:
-                print(events,values)
-            action = 1
-            os.remove(file_lvl1)
-            break
-        elif events == 'Add':
-            if g.DEBUG_OL >= 2:
-                print(events,values)
-            action = 2
-            break
-    if g.DEBUG_OL >= 2:
-        print(action)
-    window.close()
-
-## Action sur le fichiers existants
-
-
-# ## Initialisation of the list if not existing, or compare existing and missing files
-
-# In[ ]:
-
-
-colonnes = ['category','file','metadata','count','timestamp']
-
-dico = {}
-dico = {i : '' for i in colonnes} # initialise le dictionnaire
-
-if action == 1:
-    tableau = DataFrame(columns=colonnes)
-    tableau.to_csv(file_lvl1,index=False)
-
-elif action ==2:
-    listDone = []
-    
-    reader = csv.reader(open(file_lvl1, encoding='UTF-8'))
-    for row in reader:
-        if row[1] not in listDone and  row[1] != 'file':
-            listDone.append(row[1])
-        if g.DEBUG_OL >= 2:
-            print(listDone)
-
-    dirlist=diff(dirlist,listDone)
-    if g.DEBUG_OL >= 2:
-        print(len(dirlist),'fichiers à traiter:',dirlist)
-    
-else:
-    exit()
 
 
 # ## Main process to treat tika ocr in files

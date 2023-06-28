@@ -20,7 +20,7 @@ def init():
     # -1 Special cases
 
     global parallel
-    parallel = 4
+    parallel = 5
     
     global FONT
     FONT='Helvetica 11'
