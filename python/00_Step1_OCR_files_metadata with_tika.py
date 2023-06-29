@@ -106,37 +106,60 @@ def formatcol(liste,displayedCol=4):
     liste2Print = []
     cc=[]
     
-    displayedColLen = len(liste)//displayedCol
+    displayedColLen = len(liste)//4*4
     displayedColModulo = len(liste)%displayedCol
     if g.DEBUG_OL >= 3:
         print('displayedCol:',displayedCol,'\tdisplayedColLen:',displayedColLen,'\tdisplayedColModulo:',displayedColModulo)
-    for i in range(displayedColLen):
-    #    print(dirlist[::displayedCol][i], '\t' ,dirlist[1::3][i], '\t' ,dirlist[2::3][i],'\t',dirlist[3::displayedCol][i])
-        cc = [liste[::displayedCol][i], liste[1::3][i], liste[2::3][i],liste[3::4][i]]
-        liste2Print.append(cc)
+        print(len(liste))
+    if not displayedColLen == 0:
+        for k in range(0,displayedColLen, 4):
+            if g.DEBUG_OL >= 3:
+                print(liste[k], '\t' ,liste[k+1], '\t' ,liste[k+2],'\t',liste[k+3])
+            cc = [dirlist[k],liste[k+1],liste[k+2],liste[k+3]]
+            liste2Print.append(cc)
         
-    for j in range(displayedColModulo):
-        if j == 0:
-    #        print(dirlist[::displayedCol][displayedColLen])
-            aa = liste[::displayedCol][displayedColLen]
+    for j in range(displayedColModulo+1):
+        cc=[]
+        if g.DEBUG_OL >= 3:
+            print(j)
+        if j == 1:
+            if g.DEBUG_OL >= 3:
+                print(liste[displayedColLen])
+            aa = liste[displayedColLen]
             cc=[aa]
     
-        elif j == 1:
-    #        print(dirlist[1::3][displayedColLen])
-            bb= liste[1::3][displayedColLen]
+        elif j == 2:
+            if g.DEBUG_OL >= 3:
+                print(liste[displayedColLen+1])
+            bb= liste[displayedColLen+1]
             cc=[aa,bb]
     
-        elif j == 2:
-    #        print(dirlist[2::3][displayedColLen])
-            dd= liste[2::3][displayedColLen]
+        elif j == 3:
+            if g.DEBUG_OL >= 3:
+                print(liste[displayedColLen+2])
+            dd= liste[displayedColLen+2]
             cc=[aa,bb,dd]
-    
-            
-    liste2Print.append(cc)
+    if not cc:
+        if g.DEBUG_OL >= 3:
+            print('not cc')
+    else:
+        liste2Print.append(cc)
     
     if g.DEBUG_OL >= 3:
         print(len(liste2Print),liste2Print)
     return liste2Print
+
+
+# ### Count elements in list of list
+
+# In[ ]:
+
+
+def get_all_elements_in_list_of_lists(list):
+    counter = 0
+    for element in list:
+        counter += len(element)
+    return counter
 
 
 # ## Make difference between list of files (dirlist) and files already treated in the result
@@ -299,7 +322,8 @@ dico = {i : '' for i in colonnes}                                  # dictionnary
 # In[ ]:
 
 
-remainList = []
+listDone = []
+reader = ''
 if g.DEBUG_OL >= 2:
     print('output_directory',output_directory,'\tfile_lvl1:',file_lvl1)
 if not os.path.isdir(output_directory):
@@ -313,29 +337,16 @@ if os.path.isfile(file_lvl1):
     for row in reader:
         if row[1] not in listDone and  row[1] != 'file':
             listDone.append(row[1])
-        if g.DEBUG_OL >= 2:
-            print(listDone)
-    if len(listDone) != len(dirlist):
-        
-        remainList=diff(dirlist,listDone)
-        newFiles = True
-        
-        if g.DEBUG_OL >= 2:
-            #Display list of remaining files formated in columns
-            print('----------------------------------------------------------')
-            print(len(remainList),'remaining files to assess:')
-            
-    else:
-        newFiles =False
-
+    listDone.sort()
     if g.DEBUG_OL >= 2:
-        print('newFiles:',newFiles)
+        print('\nlen(listDone):',len(listDone),'\tlistDone',listDone)
+
 else:
     fileExists=False
 
 if g.DEBUG_OL >= 2:
-    print('fileExists:',fileExists)
-    print('end process: Prepare list of remaining files')
+    print('\nfileExists:',fileExists)
+    
 
 
 # ## Create displayable list of all files in pysimplegui
@@ -344,6 +355,9 @@ if g.DEBUG_OL >= 2:
 
 
 fullListe2Print = formatcol(dirlist)
+fullList=get_all_elements_in_list_of_lists(fullListe2Print)
+if g.DEBUG_OL >= 2:
+    print(fullList, fullListe2Print)
 
 
 # ## Create displayable list of remaining files in pysimplegui
@@ -352,7 +366,25 @@ fullListe2Print = formatcol(dirlist)
 
 
 if fileExists == True:
+
+    remainList=diff(dirlist,listDone)
+    remainList.sort()
+    if g.DEBUG_OL >= 2:
+        print('\nremainList:',remainList)
     remainListe2Print = formatcol(remainList)
+
+    deltaList=get_all_elements_in_list_of_lists(remainListe2Print)
+    
+    if g.DEBUG_OL >= 2:
+        print('\ndeltalist',deltaList,'remainList2Print',remainListe2Print )
+
+    if deltaList >0:
+        newFiles = True
+    else:
+        newFiles =False
+
+if g.DEBUG_OL >= 2:
+    print("newFiles:",newFiles,'\tfileExists',fileExists)
 
 
 # ## Display full files list and remaining files list and request action
@@ -364,13 +396,18 @@ if fileExists == True:
     import PySimpleGUI as sg
     title="Analyze of files to treat"
     
-    layout = [[sg.T(len(dirlist),font=('Arial', 10, 'bold'), text_color='yellow'),sg.T('files found in the directory',font=('Arial', 10)),sg.T(output_directory,font=('Arial', 10, 'bold'), text_color='yellow'),sg.T(' ',size=(40, 1)),sg.T('Parallelization:',font=('Arial', 10)),sg.T(g.parallel,font=('Arial', 10, 'bold'), text_color='yellow') ],
-              [sg.Table(fullListe2Print,auto_size_columns=True,display_row_numbers=False,header_text_color='white on blue',selected_row_colors='white on blue',justification='left',expand_x=True,expand_y=True,)],
-              [sg.T(len(remainList),font=('Arial', 10, 'bold'), text_color='lightgreen'),sg.T('remaining files to assess',font=('Arial', 10)) ],
-              [sg.Table(remainListe2Print,auto_size_columns=True,display_row_numbers=False,header_text_color='white on blue',selected_row_colors='white on blue',justification='left',expand_x=True,expand_y=True,)],[sg.T(' ',size=(40, 1))]]
-    
+    layout = [[sg.T(len(dirlist),font=('Arial', 10, 'bold'), text_color='yellow'),
+               sg.T('files found in the directory',font=('Arial', 10)),
+               sg.T(output_directory,font=('Arial', 10, 'bold'), text_color='yellow'),
+               sg.T(' ',size=(40, 1)),sg.T('Parallelization:',font=('Arial', 10)),
+               sg.T(g.parallel,font=('Arial', 10, 'bold'), text_color='yellow')],
+               [sg.Table(fullListe2Print,auto_size_columns=True,display_row_numbers=False,header_text_color='white on blue',selected_row_colors='white on blue',justification='left',expand_x=True,expand_y=True,)]]
+   
     if newFiles == True:
-        laycase = [[sg.T('Do you want to remove the existing result file:',font=('Arial', 10)),
+        laycase = [[sg.T(len(remainList),font=('Arial', 10, 'bold'), text_color='lightgreen'),
+                    sg.T('remaining files to assess',font=('Arial', 10)) ],
+                   [sg.Table(remainListe2Print,auto_size_columns=True,display_row_numbers=False,header_text_color='white on blue',selected_row_colors='white on blue',justification='left',expand_x=True,expand_y=True,)],
+                   [sg.T('Do you want to remove the existing result file:',font=('Arial', 10)),
                    sg.T(file_lvl1,font=('Arial', 10, 'bold'), text_color='yellow')],
                   [sg.T('or do you prefer to add remaining/added files to the existing metadata ?',font=('Arial', 10))]
                   ,[sg.B('Remove',button_color=('white', 'red')), sg.B('Add',button_color=('black', 'green')), sg.T(' ',size=(40, 1)),sg.Cancel()]]
