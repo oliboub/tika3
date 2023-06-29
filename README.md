@@ -15,7 +15,7 @@ wordcloud tutorial:
 https://www.youtube.com/watch?v=l7w7unBNAeU
 
 a category is needed. it means a subdirectory of the home directory with your all your documents (images, documents) files to be transformed in textual words.<br>
-category is defined in the file: **python/global_variables.py** (it can be moved directly in the directory jupyter_files if needed)<br>
+*category* is defined in the file: **python/global_variables.py** (it can be moved directly in the directory jupyter_files if needed)<br>
 
 <br>
 <u>New in this version tika3:</u><br>
@@ -33,13 +33,15 @@ Change has been done following a training in Udemy: "Python Coder un dashboard d
 | FIle | Description |
 | --- | --- |
 | jupyter_files/**00_Step1_OCR_files_metadata with_tika.ipynb** | tika parsing of files from a category directory, with output is a file with all metadata found, including  qtt by file  |
+| jupyter_files/**01_wordccloud_of_tika_result.ipynb** | File to generate a wordcloud output based on result of 00_Step1_OCR_files_metadata with_tika.ipynb |
 
 
 ## <span style="color:blue">result </span>
 Results wil be provided in a subdirectory named: *category*_results
 | FIle | Description |
 | --- | --- |
-| category__metadatas.csv | file with all treated files with data format as :  ['category','file','metadata','count','timestamp'] |
+| *category*_results/**category__metadatas.csv** | file with all treated files with data format as :  ['category','file','metadata','count','timestamp'] |
+| *category*_results/**category__wordcloud1.png** | wordcloud output of metadata collected |
 
 ## <span style="color:blue">Development environment</span>
 - using ubuntu 23 with python 3.11 and openjava sdk 17<br>

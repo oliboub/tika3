@@ -308,7 +308,7 @@ def traiteocr(dirlist):
 
 
 ##################
-listDone = []                                                      # variable to retrieve all files already trated in metadata
+listDone = []                                                      # variable to retrieve all files already treated in metadata
 output_directory=category+'_results'                               # directory of metadata file creation
 file_lvl1=output_directory+'/'+category+'__metadata.csv'           # file name of metadata file
 colonnes = ['category','file','metadata','count','timestamp']      # columns to be created in metadata file
