@@ -32,6 +32,7 @@
 
 
 import os
+import sys
 from multiprocessing import Pool
 from tika import parser
 import datetime
@@ -409,8 +410,8 @@ if fileExists == True:
                    [sg.Table(remainListe2Print,auto_size_columns=True,display_row_numbers=False,header_text_color='white on blue',selected_row_colors='white on blue',justification='left',expand_x=True,expand_y=True,)],
                    [sg.T('Do you want to remove the existing result file:',font=('Arial', 10)),
                    sg.T(file_lvl1,font=('Arial', 10, 'bold'), text_color='yellow')],
-                  [sg.T('or do you prefer to add remaining/added files to the existing metadata ?',font=('Arial', 10))]
-                  ,[sg.B('Remove',button_color=('white', 'red')), sg.B('Add',button_color=('black', 'green')), sg.T(' ',size=(40, 1)),sg.Cancel()]]
+                  [sg.T('or do you prefer to add remaining/added files to the existing metadata ?',font=('Arial', 10))],
+                   [sg.B('Remove',button_color=('white', 'red')), sg.B('Add',button_color=('black', 'green')), sg.T(' ',size=(40, 1)),sg.Cancel()]]
         
     elif newFiles == False:
         laycase = [[sg.T('There are no new files to asses. Do you want to recreate the existing result file:',font=('Arial', 10)),
@@ -424,7 +425,9 @@ if fileExists == True:
         events, values = window.read()
         if events == 'Cancel' or events == sg.WIN_CLOSED:
             action = 0
+            window.close()
             exit()
+            sys.exit("Cancelled")
             break
         elif events == 'Remove' or events == 'Restart and Clean metadata file':
             if g.DEBUG_OL >= 2:
@@ -485,7 +488,7 @@ if __name__ == "__main__":
 # In[ ]:
 
 
-time.sleep(5)
+time.sleep(3)
 if platform == "linux" or platform == "linux2":
     check_call(['sync'])
     kill_linux_java_process()
